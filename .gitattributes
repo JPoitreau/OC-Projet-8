@@ -1,2 +1,4 @@
+src/model/lgb_model.pkl filter=lfs diff=lfs merge=lfs -text
+data/original/test.csv filter=lfs diff=lfs merge=lfs -text
 data/original/test.csv !text !filter !merge !diff
 src/model/lgb_model.pkl !text !filter !merge !diff
