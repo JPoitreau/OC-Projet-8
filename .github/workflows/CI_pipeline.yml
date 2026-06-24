@@ -5,7 +5,7 @@ name: CI
 #----------------
 on: # l'évènement auquel va se lancer le pipelin
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: [ "main", "prod", "dev" ]
 
 #----
 jobs: # On définit ensuite les différentes tâches qui vont être faites
