@@ -14,7 +14,7 @@ jobs: # On définit ensuite les différentes tâches qui vont être faites
     steps:
     - uses: actions/checkout@v4 # On récupère le code
       with:
-        lfs: true    #Active git lfs et force le téléchargement du modèle lfs pendant le checkout
+        lfs: false    #Active git lfs et force le téléchargement du modèle lfs pendant le checkout
     - name: Set up Python 3.10
       uses: actions/setup-python@v5 # On installe python
       with:
@@ -33,7 +33,7 @@ jobs: # On définit ensuite les différentes tâches qui vont être faites
       steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true  
+          lfs: false  
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
