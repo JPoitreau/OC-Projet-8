@@ -1,0 +1,19 @@
+# . folders
+.github/
+.pytest_cache/
+.venv/
+
+#folders
+reports/
+tests/
+
+#files
+.gitignore
+.python-version
+.env
+__pycache__
+.pytest_cache
+.git
+.github
+.gradio
+src/api/.gradio
