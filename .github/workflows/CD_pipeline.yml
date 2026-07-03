@@ -20,5 +20,5 @@ jobs:
           env:
             HF_DEPLOY_TOKEN: ${{ secrets.OC_P8_COMMUNICATE_HF }}
           run: |
-            git push "https://JPoitreau:$env:HF_DEPLOY_TOKEN@huggingface.co/spaces/JPoitreau/OC-Projet-8" HEAD:main
+            git push --force "https://JPoitreau:$env:HF_DEPLOY_TOKEN@huggingface.co/spaces/JPoitreau/OC-Projet-8" HEAD:main
           
