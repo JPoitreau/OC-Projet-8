@@ -2881,13 +2881,10 @@ dependencies = [
     { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scikit-learn", version = "1.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "seaborn" },
-<<<<<<< Updated upstream
-=======
     { name = "sqlalchemy" },
     { name = "sqlalchemy-privileges" },
     { name = "sqlalchemy-utils" },
     { name = "uv" },
->>>>>>> Stashed changes
 ]
 
 [package.metadata]
@@ -2900,13 +2897,10 @@ requires-dist = [
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
     { name = "seaborn", specifier = ">=0.13.2" },
-<<<<<<< Updated upstream
-=======
     { name = "sqlalchemy", specifier = ">=2.0.51" },
     { name = "sqlalchemy-privileges", specifier = ">=0.2.0" },
     { name = "sqlalchemy-utils", specifier = ">=0.42.1" },
     { name = "uv", specifier = ">=0.11.26" },
->>>>>>> Stashed changes
 ]
 
 [[package]]
