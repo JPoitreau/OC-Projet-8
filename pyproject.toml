@@ -5,11 +5,21 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "gradio>=6.19.0",
     "imbalanced-learn>=0.14.2",
     "jupyter>=1.1.1",
     "lightgbm>=4.6.0",
     "mlflow>=3.14.0",
     "pandas>=2.3.3",
+    "pytest>=9.1.1",
     "scikit-learn>=1.7.2",
     "seaborn>=0.13.2",
+    "sqlalchemy>=2.0.51",
+    "sqlalchemy-privileges>=0.2.0",
+    "sqlalchemy-utils>=0.42.1",
+    "uv>=0.11.26",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["src/tests"]
+python_files = ["test_*.py"]

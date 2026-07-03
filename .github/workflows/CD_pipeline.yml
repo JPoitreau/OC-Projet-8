@@ -1,0 +1,24 @@
+name: Sync to Hugging Face hub
+on:
+  push:
+    branches: [prod]
+
+jobs:
+    sync-to-hub:
+        runs-on: windows-latest
+
+        steps:
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+            lfs: false
+        #- name: Ensure LFS files are present
+        #  run: |
+        #    git lfs install
+        #    git lfs pull
+        - name: Push to hub
+          env:
+            HF_DEPLOY_TOKEN: ${{ secrets.OC_P8_COMMUNICATE_HF }}
+          run: |
+            git push --force "https://JPoitreau:$env:HF_DEPLOY_TOKEN@huggingface.co/spaces/JPoitreau/OC-Projet-8" HEAD:main
+          
