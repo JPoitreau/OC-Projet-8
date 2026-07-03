@@ -1,2 +1,5 @@
 #folders
 reports/
+.gradio/
+src/api/.gradio
+src/api/__pycache__
