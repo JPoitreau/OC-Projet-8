@@ -65,4 +65,5 @@ jobs: # On définit ensuite les différentes tâches qui vont être faites
         timeout-minutes: 5
         env:
           PYTHONFAULTHANDLER: "1"
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: uv run --locked pytest -vv -s --tb=long --full-trace -o faulthandler_timeout=60
