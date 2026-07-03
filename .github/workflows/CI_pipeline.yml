@@ -59,9 +59,7 @@ jobs: # On définit ensuite les différentes tâches qui vont être faites
         run: |
           uv run python --version
           uv run python -c "import sys; print(sys.executable)"
-          uv pip freeze
           uv run pytest --version
-          uv run pytest --trace-config
 
       - name: Test with pytest
         timeout-minutes: 5
