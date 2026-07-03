@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "gradio>=6.19.0",
+    "hf-xet>=1.5.1",
+    "huggingface-hub>=1.21.0",
     "imbalanced-learn>=0.14.2",
     "jupyter>=1.1.1",
     "lightgbm>=4.6.0",
