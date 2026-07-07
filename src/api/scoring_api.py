@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 data_path = "../../data/original"
-data = pd.read_csv(os.path.join(data_path, 'test.csv'))
+data = pd.read_csv(os.path.join(data_path, 'demonstration_data.csv'))
 variables_list = list(data.columns)
 mean_data = data.mean()
 

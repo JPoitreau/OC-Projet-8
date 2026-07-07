@@ -3,4 +3,3 @@ reports/
 .gradio/
 src/api/.gradio
 src/api/__pycache__
-data/
