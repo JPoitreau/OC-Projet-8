@@ -1,0 +1,12 @@
+{
+  "EXT_SOURCE_1": "float",
+  "EXT_SOURCE_2": "float",
+  "EXT_SOURCE_3": "float",
+  "client_installments_AMT_PAYMENT_min_sum": "float",
+  "DAYS_EMPLOYED": "float",
+  "AMT_CREDIT": "float",
+  "DAYS_BIRTH": "int",
+  "previous_CNT_PAYMENT_mean": "float",
+  "bureau_DAYS_CREDIT_max": "float",
+  "client_cash_CNT_INSTALMENT_FUTURE_min_mean": "float"
+}
