@@ -1,7 +1,6 @@
 #Commande de lancement du script: python -m src.api.scoring_api
 
 import gradio as gr
-import os
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -31,14 +30,24 @@ with open(MODEL_PATH, "rb") as f:
     scoring_model = load(f)
 
 def update_table(features: list[str] | str | None):
+    """
+    Get list of features name and convert it as an empty dataframe.
+
+    Args:
+    features: list of features selected by the user
+    """
     if not features:
         return pd.DataFrame(
-            columns = ["variable", "value"]
+            columns = ["feature", "value"]
         )
+    
     if isinstance(features, str):
-        features = [features] 
+        # If only one feature is selected (str type), we have to convert it
+        # into a list before the dataframe creation
+        features = [features]
+
     return pd.DataFrame({
-        "variable" : features,
+        "feature" : features,
         "value" : [np.nan]*len(features)
     })
 
@@ -149,14 +158,15 @@ def process_scoring_request(user_values: dict):
 
 
 with gr.Blocks() as demo:
+
     choosed_features = gr.Dropdown(
-        choices = variables_list,
+        choices = explicative_features_list,
         multiselect = True,
         value = list
     )
     
     user_table = gr.Dataframe(
-        headers=["variable", "value"],
+        headers=["feature", "value"],
         datatype=["str", "str"],
         interactive=True,
         label="Valeurs utilisateur"
