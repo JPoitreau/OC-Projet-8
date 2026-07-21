@@ -4,13 +4,6 @@ import gradio as gr
 import os
 import pandas as pd
 import numpy as np
-<<<<<<< Updated upstream
-
-data_path = "../../data/original"
-data = pd.read_csv(os.path.join(data_path, 'demonstration_data.csv'))
-variables_list = list(data.columns)
-mean_data = data.mean()
-=======
 from pathlib import Path
 from pydantic import TypeAdapter, ValidationError
 from pickle import load
@@ -36,7 +29,6 @@ explicative_features_list = list(explicative_features.index)
 
 with open(MODEL_PATH, "rb") as f:
     scoring_model = load(f)
->>>>>>> Stashed changes
 
 def update_table(features: list[str] | str | None):
     if not features:
@@ -50,8 +42,6 @@ def update_table(features: list[str] | str | None):
         "value" : [np.nan]*len(features)
     })
 
-<<<<<<< Updated upstream
-=======
 def validate_params(df: pd.DataFrame,
                     types : pd.Series):
     """
@@ -158,7 +148,6 @@ def process_scoring_request(user_values: dict):
     }
 
 
->>>>>>> Stashed changes
 with gr.Blocks() as demo:
     choosed_features = gr.Dropdown(
         choices = variables_list,
@@ -179,15 +168,6 @@ with gr.Blocks() as demo:
         outputs=user_table
     )
 
-<<<<<<< Updated upstream
-
-    #gr.Interface(
-    #    fn=greet,
-    #    inputs=["text", "slider"],
-    #    outputs=["text"],
-    #    api_name="predict"
-    #)
-=======
     validate_button = gr.Button("Valider les paramètres")
 
     types_state = gr.State(value=explicative_features)
@@ -217,7 +197,6 @@ with gr.Blocks() as demo:
         fn=process_scoring_request,
         api_name="score_client",
     )                        
->>>>>>> Stashed changes
 
 if __name__ == "__main__":
     demo.launch()
