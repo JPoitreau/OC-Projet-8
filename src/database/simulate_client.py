@@ -1,6 +1,8 @@
-from gradio_client import Client
 from pathlib import Path
+
 import pandas as pd
+from gradio_client import Client
+from gradio_client.exceptions import AppError
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 PROFILS_PATH = BASE_DIR / "data" / "profils.json"
@@ -47,7 +49,7 @@ if PROFILS_PATH.is_file():
             client.predict(profil, api_name="/score_client")
             print(f"Profil {index} traité.")
 
-        except Exception as error:
+        except AppError:
             print(f"Profil {index} non valide.")
 
 else:

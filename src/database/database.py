@@ -1,12 +1,6 @@
-import os
 import datetime
-from sqlalchemy import (
-    URL,
-    create_engine,
-    text,
-    MetaData,
-    Table
-)
+
+from sqlalchemy import URL, MetaData, Table, create_engine, text
 
 
 DATABASE_NAME = "scoring_db"

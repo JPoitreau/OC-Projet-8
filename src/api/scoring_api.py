@@ -1,19 +1,16 @@
-#Commande de lancement du script: python -m src.api.scoring_api
-
-import gradio as gr
-import pandas as pd
-import numpy as np
 from pathlib import Path
-from pydantic import TypeAdapter, ValidationError
 from pickle import load
-import __main__
 from time import perf_counter
 
-from src.utils.utils import custom_sampler_ratio, business_cost
-from src.database.database import save_prediction_log, save_error_log
+import gradio as gr
+import numpy as np
+import pandas as pd
+from pydantic import TypeAdapter, ValidationError
 
-setattr(__main__, "custom_sampler_ratio", custom_sampler_ratio)
-setattr(__main__, "business_cost", business_cost)
+import __main__
+from src.database.database import save_error_log, save_prediction_log
+from src.utils.utils import business_cost, custom_sampler_ratio
+#Commande de lancement du script: python -m src.api.scoring_api
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_PATH = BASE_DIR / "data" / "original" / "demonstration_data.csv"
@@ -72,7 +69,7 @@ def validate_params(df: pd.DataFrame,
 
         try:
             adapter = TypeAdapter(eval(types[str(feature)]))
-        except Exception as e:
+        except KeyError:
             return f"Variable inconnue, non prise en charge dans la validation pydantic : {feature}", None
             
 
@@ -126,7 +123,7 @@ def infer_from_new_vector(params: dict, start_time = None):
 
         return prediction.tolist(), message
 
-    except Exception as error:
+    except (ValueError, TypeError, KeyError, IndexError) as error:
         execution_time_ms = (perf_counter() - start_time) * 1000
 
         request_id = save_error_log(
