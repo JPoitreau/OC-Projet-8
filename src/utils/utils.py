@@ -24,5 +24,5 @@ def business_cost(y_true, y_pred, fn_cost=10, fp_cost=1):
       metric to minimise
 
     """
-    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+    _, fp, fn, _ = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
     return fn_cost * fn + fp_cost * fp
