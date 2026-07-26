@@ -3,3 +3,9 @@ reports/
 .gradio/
 src/api/.gradio
 src/api/__pycache__
+
+#full training data
+data/original/training_data.csv
+
+#file
+src/notebooks/draft_and_data_exploration.ipynb

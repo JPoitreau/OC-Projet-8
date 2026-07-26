@@ -1,0 +1,23 @@
+[
+    {
+        "FEATURE_INEXISTANTE": 100,
+        "EXT_SOURCE_2": 0.63135576,
+        "client_installments_AMT_PAYMENT_min_sum": 183176.38,
+        "DAYS_EMPLOYED": -1129.0,
+        "AMT_CREDIT": 299772.0,
+        "DAYS_BIRTH": -13260,
+        "previous_CNT_PAYMENT_mean": 24.0,
+        "client_cash_CNT_INSTALMENT_FUTURE_min_mean": 1.1463414
+    },
+    {
+        "EXT_SOURCE_1": 0.7519045,
+        "EXT_SOURCE_2": 0.40156066,
+        "EXT_SOURCE_3": 0.5118918,
+        "client_installments_AMT_PAYMENT_min_sum": 769909.06,
+        "AMT_CREDIT": 545040.0,
+        "DAYS_BIRTH": -9762,
+        "previous_CNT_PAYMENT_mean": 14.5,
+        "bureau_DAYS_CREDIT_max": -686.0,
+        "client_cash_CNT_INSTALMENT_FUTURE_min_mean": 0.5833333
+    }
+]
