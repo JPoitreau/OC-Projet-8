@@ -45,7 +45,13 @@ def save_prediction_log(
     execution_time_ms: float,
 ) -> int:
     """
-    Récupère les entrées et sorties du modèle pour les loguer dans la table.
+    Logue les entrées et sorties de l'API dans model_logs pour les cas de
+    requêtes réussies.
+
+    Args:
+    requested_params: dictionnaire de paramètres requêtés
+    predicted_class: classe prédite par le modèle
+    execution_time_ms: durée d'éxecution de la requête
     """
 
     statement = model_logs.insert().values( #commande sqlalchemy d'insertion dans la table
@@ -61,6 +67,36 @@ def save_prediction_log(
         result = connection.execute(statement)
 
     return result.inserted_primary_key[0] #revoie la clé primaire générée automatiquement dans la table => l'id de la requête
+
+def save_error_log(
+        requested_params: dict,
+        error_message: str,
+        execution_time_ms: float | None = None,
+) -> int:
+    """
+    Logue les entrées et sorties de l'API dans model_logs pour les cas de
+    requêtes échouées.
+
+    Args:
+    requested_params: dictionnaire de paramètres requêtés
+    error_message: message d'erreur renvoyé aux différentes étapes de l'API
+    execution_time_ms: durée d'éxecution de la requête
+    """
+
+    statement = model_logs.insert().values(
+        requested_at=datetime.datetime.now(datetime.timezone.utc),
+        requested_params=requested_params,
+        pred_class=None,
+        execution_time_ms=execution_time_ms,
+        error=True,
+        error_message=error_message,
+    )
+
+    with engine.begin() as connection: #executée sur engine
+        result = connection.execute(statement)
+
+    return result.inserted_primary_key[0]
+
 
 if __name__ == "__main__": 
 #Test manuel en lançant directement le script. Empêche l'exécution si le script est importé.

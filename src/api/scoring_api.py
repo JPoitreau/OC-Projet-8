@@ -10,7 +10,7 @@ import __main__
 from time import perf_counter
 
 from src.utils.utils import custom_sampler_ratio, business_cost
-from src.database.database import save_prediction_log
+from src.database.database import save_prediction_log, save_error_log
 
 setattr(__main__, "custom_sampler_ratio", custom_sampler_ratio)
 setattr(__main__, "business_cost", business_cost)
@@ -69,7 +69,12 @@ def validate_params(df: pd.DataFrame,
     for _, row in df.iterrows():
         feature = row["feature"]
         value = row["value"]
-        adapter = TypeAdapter(eval(types[str(feature)]))
+
+        try:
+            adapter = TypeAdapter(eval(types[str(feature)]))
+        except Exception as e:
+            return f"Variable inconnue, non prise en charge dans la validation pydantic : {feature}", None
+            
 
         try:
             parsed[feature] = adapter.validate_python(value)
@@ -83,7 +88,7 @@ def validate_params(df: pd.DataFrame,
 
     return "✅ Paramètres valides.", parsed
 
-def infer_from_new_vector(params: dict):
+def infer_from_new_vector(params: dict, start_time = None):
     """
     Create new vector from given parameters. Missing parameters are filled
     with nan values and imputed in the model pipeline. Save the prediction
@@ -92,8 +97,12 @@ def infer_from_new_vector(params: dict):
 
     Args:
     params: dictionnary of features and keys with new values.
+    start_time: float used to measure processing time when the function is
+    called from process_scoring_request
     """
-    start_time = perf_counter()
+    if not start_time:
+        start_time = perf_counter()
+
     try:
         new_vector = (pd.DataFrame([params], index=[0])
                     .reindex(columns=data.columns, fill_value=np.nan))
@@ -118,6 +127,14 @@ def infer_from_new_vector(params: dict):
         return prediction.tolist(), message
 
     except Exception as error:
+        execution_time_ms = (perf_counter() - start_time) * 1000
+
+        request_id = save_error_log(
+            requested_params={},
+            error_message=f'{error}',
+            execution_time_ms=0.0
+        )
+
         return(
             None,
             f"Une erreur est survenue : '{error}'"
@@ -129,6 +146,24 @@ def process_scoring_request(user_values: dict):
     et enregistre la requête dans PostgreSQL. Permet de simuler une requête
     utlisateur complète à partir d'un dictionnaire clés:valeurs
     """
+
+    start_time = perf_counter()
+
+    if not user_values:
+        error_message = "Aucune valeur utilisateur reçue."
+
+        request_id = save_error_log(
+            requested_params={},
+            error_message=error_message,
+            execution_time_ms=0.0
+        )
+
+        raise ValueError(
+            f"{error_message} Requête enregistrée avec l'identifiant "
+            f"{request_id}."
+        )
+
+
     user_dataframe = pd.DataFrame(
         {
             "feature": list(user_values.keys()),
@@ -144,11 +179,24 @@ def process_scoring_request(user_values: dict):
 
     #Si parsed_params est vide, une erreur de paramètre a été détectée
     if parsed_params is None:
-        raise ValueError(validation_message)
+        execution_time_ms = (perf_counter() - start_time) * 1000
+
+        request_id = save_error_log(
+            requested_params=user_values,
+            error_message=validation_message,
+            execution_time_ms=execution_time_ms,
+        )
+
+        raise ValueError(
+            f"{validation_message}\n"
+            f"Erreur enregistrée avec l'identifiant {request_id}."
+        )
 
     #Si tout est bon on appel la fonction d'inférence qui sauvegarde la
     #prédiction et retourne la prédiction et la confirmation d'enregistrement.
-    prediction, database_message = infer_from_new_vector(parsed_params)
+
+    prediction, database_message = infer_from_new_vector(parsed_params, start_time)
+
     #Retourne les résultats dans la console pour le débugage
     return {
         "prediction": prediction,

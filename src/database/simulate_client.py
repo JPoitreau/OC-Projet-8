@@ -5,7 +5,7 @@ import pandas as pd
 BASE_DIR = Path(__file__).resolve().parents[2]
 PROFILS_PATH = BASE_DIR / "data" / "profils.json"
 
-SIMULATE_PROFILS = True
+SIMULATE_PROFILS = False
 
 if SIMULATE_PROFILS:
     import json
@@ -42,8 +42,13 @@ client = Client("http://127.0.0.1:7860")
 if PROFILS_PATH.is_file():
 
     profils = pd.read_json(PROFILS_PATH, typ='series')
-    for profil in profils:
-        client.predict(profil, api_name="/score_client")
+    for index, profil in enumerate(profils):
+        try:
+            client.predict(profil, api_name="/score_client")
+            print(f"Profil {index} traité.")
+
+        except Exception as error:
+            print(f"Profil {index} non valide.")
 
 else:
     client.predict(
