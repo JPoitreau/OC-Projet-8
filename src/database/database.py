@@ -1,7 +1,6 @@
 import datetime
 
-from sqlalchemy import URL, MetaData, Table, create_engine, text
-
+from sqlalchemy import URL, MetaData, Table, create_engine
 
 DATABASE_NAME = "scoring_db"
 DATABASE_USER = "scoring_app"

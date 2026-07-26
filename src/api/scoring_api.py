@@ -7,9 +7,8 @@ import numpy as np
 import pandas as pd
 from pydantic import TypeAdapter, ValidationError
 
-import __main__
 from src.database.database import save_error_log, save_prediction_log
-from src.utils.utils import business_cost, custom_sampler_ratio
+
 #Commande de lancement du script: python -m src.api.scoring_api
 
 BASE_DIR = Path(__file__).resolve().parents[2]

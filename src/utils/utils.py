@@ -1,6 +1,7 @@
-from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
 from sklearn.metrics import confusion_matrix
+
 
 def custom_sampler_ratio(X,y,undersampler_ratio = 1.0):
     UnderSampler = RandomUnderSampler(sampling_strategy = undersampler_ratio, random_state = 42)
