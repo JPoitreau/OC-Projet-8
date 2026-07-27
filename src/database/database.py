@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import URL, MetaData, Table, create_engine
 
@@ -36,6 +36,7 @@ def save_prediction_log(
     requested_params: dict,
     predicted_class: int,
     execution_time_ms: float,
+    event_time: datetime | None = None,
 ) -> int:
     """
     Logue les entrées et sorties de l'API dans model_logs pour les cas de
@@ -48,8 +49,9 @@ def save_prediction_log(
     """
 
     statement = model_logs.insert().values( #commande sqlalchemy d'insertion dans la table
-        requested_at=datetime.datetime.now(datetime.timezone.utc),
+        requested_at=datetime.now(timezone.utc),
         requested_params=requested_params,
+        event_time = event_time,
         pred_class=predicted_class,
         execution_time_ms=execution_time_ms,
         error=False,
@@ -65,6 +67,7 @@ def save_error_log(
         requested_params: dict,
         error_message: str,
         execution_time_ms: float | None = None,
+        event_time: datetime | None = None
 ) -> int:
     """
     Logue les entrées et sorties de l'API dans model_logs pour les cas de
@@ -77,8 +80,9 @@ def save_error_log(
     """
 
     statement = model_logs.insert().values(
-        requested_at=datetime.datetime.now(datetime.timezone.utc),
+        requested_at=datetime.now(timezone.utc),
         requested_params=requested_params,
+        event_time=event_time,
         pred_class=None,
         execution_time_ms=execution_time_ms,
         error=True,

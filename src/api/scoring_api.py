@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 from pickle import load
 from time import perf_counter
@@ -60,7 +61,7 @@ def validate_params(df: pd.DataFrame,
     parsed = {}
 
     if df.empty:
-        return "Aucun paramètre sélectionné.", None
+        return "No feature selected.", None
 
     for _, row in df.iterrows():
         feature = row["feature"]
@@ -69,22 +70,25 @@ def validate_params(df: pd.DataFrame,
         try:
             adapter = TypeAdapter(eval(types[str(feature)]))
         except KeyError:
-            return f"Variable inconnue, non prise en charge dans la validation pydantic : {feature}", None
+            return f"Unknown feature, not suported by pydantic validation : {feature}", None
             
 
         try:
             parsed[feature] = adapter.validate_python(value)
         except ValidationError as e:
             errors.append(
-                f"- `{feature}` : {e.errors()[0]['msg']} — valeur reçue : `{value}`"
+                f"- `{feature}` : {e.errors()[0]['msg']} — Recieved feature : `{value}`"
             )
 
     if errors:
-        return "Erreurs de validation :\n\n" + "\n".join(f"- {e}" for e in errors), None
+        return "Validation error :\n\n" + "\n".join(f"- {e}" for e in errors), None
 
-    return "✅ Paramètres valides.", parsed
+    return "✅ Features validated.", parsed
 
-def infer_from_new_vector(params: dict, start_time = None):
+def infer_from_new_vector(
+        params: dict, 
+        start_time: float | None = None,
+        event_time : datetime | None = None):
     """
     Create new vector from given parameters. Missing parameters are filled
     with nan values and imputed in the model pipeline. Save the prediction
@@ -113,11 +117,12 @@ def infer_from_new_vector(params: dict, start_time = None):
             requested_params=params,
             predicted_class=predicted_class,
             execution_time_ms=execution_time_ms,
+            event_time = event_time
         )
 
         message = (
-            f"✅ Prédiction enregistrée dans PostgreSQL. "
-            f"Identifiant de requête : '{request_id}'."
+            f"✅ Prediction registered in PostgreSQL. "
+            f"Request ID : '{request_id}'."
         )
 
         return prediction.tolist(), message
@@ -128,15 +133,19 @@ def infer_from_new_vector(params: dict, start_time = None):
         request_id = save_error_log(
             requested_params={},
             error_message=f'{error}',
-            execution_time_ms=0.0
+            execution_time_ms=0.0,
+            event_time = event_time
         )
 
         return(
             None,
-            f"Une erreur est survenue : '{error}'"
+            f"An error occured : '{error}'"
         )
 
-def process_scoring_request(user_values: dict):
+def process_scoring_request(
+        user_values: dict,
+        simulated_event_time: str | None = None,
+    ):
     """
     Valide les valeurs, effectue la prédiction
     et enregistre la requête dans PostgreSQL. Permet de simuler une requête
@@ -145,8 +154,10 @@ def process_scoring_request(user_values: dict):
 
     start_time = perf_counter()
 
+    event_time = datetime.fromisoformat(simulated_event_time)
+
     if not user_values:
-        error_message = "Aucune valeur utilisateur reçue."
+        error_message = "No features value was recieved from the user."
 
         request_id = save_error_log(
             requested_params={},
@@ -155,8 +166,7 @@ def process_scoring_request(user_values: dict):
         )
 
         raise ValueError(
-            f"{error_message} Requête enregistrée avec l'identifiant "
-            f"{request_id}."
+            f"{error_message} Request registered with ID : {request_id}."
         )
 
 
@@ -185,13 +195,17 @@ def process_scoring_request(user_values: dict):
 
         raise ValueError(
             f"{validation_message}\n"
-            f"Erreur enregistrée avec l'identifiant {request_id}."
+            f"Error registered with ID : {request_id}."
         )
 
     #Si tout est bon on appel la fonction d'inférence qui sauvegarde la
     #prédiction et retourne la prédiction et la confirmation d'enregistrement.
 
-    prediction, database_message = infer_from_new_vector(parsed_params, start_time)
+    prediction, database_message = infer_from_new_vector(
+                                            parsed_params, 
+                                            start_time,
+                                            event_time
+                                            )
 
     #Retourne les résultats dans la console pour le débugage
     return {

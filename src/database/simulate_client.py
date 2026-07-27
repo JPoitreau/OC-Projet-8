@@ -1,3 +1,5 @@
+import random
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -7,7 +9,57 @@ from gradio_client.exceptions import AppError
 BASE_DIR = Path(__file__).resolve().parents[2]
 PROFILS_PATH = BASE_DIR / "data" / "profils.json"
 
-SIMULATE_PROFILS = False
+SIMULATE_PROFILS = True
+NB_PROFILS = 1000
+ERROR_RATE = 0.1
+
+API_URL = "http://127.0.0.1:7860"
+ENDPOINT = "/score_client"
+
+client = Client(API_URL)
+
+
+def random_datetime_between(
+    start: datetime,
+    end: datetime,
+) -> datetime:
+    if end <= start:
+        raise ValueError(
+            "La date de fin doit être postérieure à la date de début."
+        )
+
+    total_seconds = int((end - start).total_seconds())
+    random_seconds = random.randint(0, total_seconds)
+
+    return start + timedelta(seconds=random_seconds)
+
+def maybe_corrupted_profile(
+    profile: dict,
+    index: int,
+    error_rate: float = 0.05,
+) -> dict:
+    corrupted_profile = profile.copy()
+    possible_errors = ["empty", "invalid_value", "invalid_feature"]
+
+    if random.random() >= error_rate:
+        return profile
+
+    error = random.choice(possible_errors)
+
+    if error == "empty":
+        corrupted_profile = {}
+    elif error == "invalid_value":
+        selected_feature = random.choice(
+            list(corrupted_profile.keys())
+        )   
+        corrupted_profile[selected_feature] = str(corrupted_profile[selected_feature])
+    else:
+        corrupted_profile['invalid_feature'] = 100
+
+    print(f"Profil {index} has been corrupted with error : {error}")
+
+    return corrupted_profile
+
 
 if SIMULATE_PROFILS:
     import json
@@ -30,34 +82,62 @@ if SIMULATE_PROFILS:
             for value in [training_data.sample(n=1)[feature].item()]
             if pd.notna(value) # Nan values are imputed by the inference pipeline 
         }
-        for profil in range(10)
+        for profil in range(NB_PROFILS)
     ]
+
+    for index, profil in enumerate(profils_list):
+        profils_list[index] = maybe_corrupted_profile(
+                                                    profil, 
+                                                    index, 
+                                                    ERROR_RATE
+                                                    )
 
     PROFILS_PATH.write_text(json.dumps(profils_list))
 
     print("New profils registered. \n")
 
-print("Calling API... Inferences in progress.\n")
-
-client = Client("http://127.0.0.1:7860")
 
 if PROFILS_PATH.is_file():
 
+    print("Calling API... Inferences in progress.\n")
+
+    simulation_start = datetime(
+        2026, 1, 1,
+        tzinfo=timezone.utc,
+    )
+    simulation_end = datetime(
+        2026, 7, 31, 23, 59, 59,
+        tzinfo=datetime.now().astimezone().tzinfo,
+    )
+
     profils = pd.read_json(PROFILS_PATH, typ='series')
     for index, profil in enumerate(profils):
+
+        event_time = random_datetime_between(
+        simulation_start,
+        simulation_end,
+        )
         try:
-            client.predict(profil, api_name="/score_client")
+            client.predict(profil, 
+                           event_time.isoformat(), 
+                           api_name=ENDPOINT)
             print(f"Profil {index} traité.")
 
         except AppError:
             print(f"Profil {index} non valide.")
 
 else:
+    event_time = datetime(
+    2026, 3, 31, 23, 59, 59,
+    tzinfo=timezone.utc,
+    ).isoformat()
+
     client.predict(
         {
             "AMT_CREDIT": 6000,
             "DAYS_BIRTH": -140,
         },
+        event_time,
         api_name="/score_client",
     )
 
