@@ -1,7 +1,7 @@
+from datetime import datetime
 from pathlib import Path
 from pickle import load
 from time import perf_counter
-from datetime import datetime
 
 import gradio as gr
 import numpy as np
@@ -9,7 +9,6 @@ import pandas as pd
 from pydantic import TypeAdapter, ValidationError
 
 from src.database.database import save_error_log, save_prediction_log
-from src.utils.utils import custom_sampler_ratio, business_cost
 
 #Commande de lancement du script: python -m src.api.scoring_api
 
