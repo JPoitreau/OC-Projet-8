@@ -10,8 +10,8 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 PROFILS_PATH = BASE_DIR / "data" / "profils.json"
 
 SIMULATE_PROFILS = True
-NB_PROFILS = 1000
-ERROR_RATE = 0.1
+NB_PROFILS = 2000
+ERROR_RATE = 0.4
 
 API_URL = "http://127.0.0.1:7860"
 ENDPOINT = "/score_client"
@@ -62,6 +62,7 @@ def maybe_corrupted_profile(
 
 
 if SIMULATE_PROFILS:
+    print("Simulating profils...")
     import json
 
     DATA_PATH = BASE_DIR / "data" / "original" / "training_data.csv"
