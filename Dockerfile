@@ -2,7 +2,7 @@
 FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim
 
 # Ajout des bibliothèques nécessaires pour LightGBM et PostgreSQL
-RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 libpq-dev gcc \
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Dossier de travail dans le conteneur
