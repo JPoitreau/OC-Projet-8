@@ -1,6 +1,10 @@
 # Image de base : Python 3.10 avec uv déjà installé
 FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim
 
+# LightGBM a besoin de la bibliothèque OpenMP (absente des images slim)
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Dossier de travail dans le conteneur
 WORKDIR /app
 
