@@ -22,4 +22,4 @@ ENV GRADIO_SERVER_NAME="0.0.0.0"
 ENV GRADIO_SERVER_PORT="7860"
 
 # Commande lancée au démarrage du conteneur
-CMD ["python", "src/api/scoring_api.py"]
+CMD ["python", "-m", "src.api.scoring_api"]
