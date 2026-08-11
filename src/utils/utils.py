@@ -1,6 +1,7 @@
-from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
 from sklearn.metrics import confusion_matrix
+
 
 def custom_sampler_ratio(X,y,undersampler_ratio = 1.0):
     UnderSampler = RandomUnderSampler(sampling_strategy = undersampler_ratio, random_state = 42)
@@ -24,5 +25,5 @@ def business_cost(y_true, y_pred, fn_cost=10, fp_cost=1):
       metric to minimise
 
     """
-    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+    _, fp, fn, _ = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
     return fn_cost * fn + fp_cost * fp

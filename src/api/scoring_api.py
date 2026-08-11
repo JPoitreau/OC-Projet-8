@@ -1,14 +1,16 @@
-import gradio as gr
-import pandas as pd
-import numpy as np
+from datetime import datetime
 from pathlib import Path
-from pydantic import TypeAdapter, ValidationError
 from pickle import load
-import __main__
+from time import perf_counter
 
-from src.utils.utils import custom_sampler_ratio, business_cost
-setattr(__main__, "custom_sampler_ratio", custom_sampler_ratio)
-setattr(__main__, "business_cost", business_cost)
+import gradio as gr
+import numpy as np
+import pandas as pd
+from pydantic import TypeAdapter, ValidationError
+
+from src.database.database import save_error_log, save_prediction_log
+
+#Commande de lancement du script: python -m src.api.scoring_api
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_PATH = BASE_DIR / "data" / "original" / "demonstration_data.csv"
@@ -59,38 +61,158 @@ def validate_params(df: pd.DataFrame,
     parsed = {}
 
     if df.empty:
-        return "Aucun paramètre sélectionné.", None
+        return "No feature selected.", None
 
     for _, row in df.iterrows():
         feature = row["feature"]
         value = row["value"]
-        adapter = TypeAdapter(eval(types[str(feature)]))
+
+        try:
+            adapter = TypeAdapter(eval(types[str(feature)]))
+        except KeyError:
+            return f"Unknown feature, not suported by pydantic validation : {feature}", None
+            
 
         try:
             parsed[feature] = adapter.validate_python(value)
         except ValidationError as e:
             errors.append(
-                f"- `{feature}` : {e.errors()[0]['msg']} — valeur reçue : `{value}`"
+                f"- `{feature}` : {e.errors()[0]['msg']} — Recieved feature : `{value}`"
             )
 
     if errors:
-        return "Erreurs de validation :\n\n" + "\n".join(f"- {e}" for e in errors), None
+        return "Validation error :\n\n" + "\n".join(f"- {e}" for e in errors), None
 
-    return "✅ Paramètres valides.", parsed
+    return "✅ Features validated.", parsed
 
-def infer_from_new_vector(params: dict):
+def infer_from_new_vector(
+        params: dict, 
+        start_time: float | None = None,
+        event_time : datetime | None = None):
     """
     Create new vector from given parameters. Missing parameters are filled
-    with nan values and imputed in the model pipeline.
+    with nan values and imputed in the model pipeline. Save the prediction
+    and the parameters into the database. Return the error message if their
+    is a problème
 
     Args:
     params: dictionnary of features and keys with new values.
+    start_time: float used to measure processing time when the function is
+    called from process_scoring_request
     """
-    new_vector = (pd.DataFrame([params], index=[0])
-                  .reindex(columns=data.columns, fill_value=np.nan))
-    prediction = scoring_model.predict(new_vector)
-    return prediction.tolist()
+    if not start_time:
+        start_time = perf_counter()
 
+    try:
+        new_vector = (pd.DataFrame([params], index=[0])
+                    .reindex(columns=data.columns, fill_value=np.nan))
+        
+        prediction = scoring_model.predict(new_vector)
+        
+        execution_time_ms = (perf_counter() - start_time) * 1000
+
+        predicted_class = int(prediction[0])
+
+        request_id = save_prediction_log(
+            requested_params=params,
+            predicted_class=predicted_class,
+            execution_time_ms=execution_time_ms,
+            event_time = event_time
+        )
+
+        message = (
+            f"✅ Prediction registered in PostgreSQL. "
+            f"Request ID : '{request_id}'."
+        )
+
+        return prediction.tolist(), message
+
+    except (ValueError, TypeError, KeyError, IndexError) as error:
+        execution_time_ms = (perf_counter() - start_time) * 1000
+
+        request_id = save_error_log(
+            requested_params={},
+            error_message=f'{error}',
+            execution_time_ms=0.0,
+            event_time = event_time
+        )
+
+        return(
+            None,
+            f"An error occured : '{error}'"
+        )
+
+def process_scoring_request(
+        user_values: dict,
+        simulated_event_time: str | None = None,
+    ):
+    """
+    Valide les valeurs, effectue la prédiction
+    et enregistre la requête dans PostgreSQL. Permet de simuler une requête
+    utlisateur complète à partir d'un dictionnaire clés:valeurs
+    """
+
+    start_time = perf_counter()
+
+    event_time = datetime.fromisoformat(simulated_event_time)
+
+    if not user_values:
+        error_message = "No features value was recieved from the user."
+
+        request_id = save_error_log(
+            requested_params={},
+            error_message=error_message,
+            execution_time_ms=0.0
+        )
+
+        raise ValueError(
+            f"{error_message} Request registered with ID : {request_id}."
+        )
+
+
+    user_dataframe = pd.DataFrame(
+        {
+            "feature": list(user_values.keys()),
+            "value": list(user_values.values()),
+        }
+    )
+
+    #Appelle validate_params à partir du dataframe 
+    validation_message, parsed_params = validate_params(
+        user_dataframe,
+        explicative_features,
+    )
+
+    #Si parsed_params est vide, une erreur de paramètre a été détectée
+    if parsed_params is None:
+        execution_time_ms = (perf_counter() - start_time) * 1000
+
+        request_id = save_error_log(
+            requested_params=user_values,
+            error_message=validation_message,
+            execution_time_ms=execution_time_ms,
+        )
+
+        raise ValueError(
+            f"{validation_message}\n"
+            f"Error registered with ID : {request_id}."
+        )
+
+    #Si tout est bon on appel la fonction d'inférence qui sauvegarde la
+    #prédiction et retourne la prédiction et la confirmation d'enregistrement.
+
+    prediction, database_message = infer_from_new_vector(
+                                            parsed_params, 
+                                            start_time,
+                                            event_time
+                                            )
+
+    #Retourne les résultats dans la console pour le débugage
+    return {
+        "prediction": prediction,
+        "database_status": database_message,
+        "validated_params": parsed_params,
+    }
 
 
 with gr.Blocks() as demo:
@@ -125,16 +247,24 @@ with gr.Blocks() as demo:
         fn=validate_params,
         inputs=[user_table, types_state],
         outputs=[status, validated_params],
+        api_name = "validate_params"
     )
 
     predict_button = gr.Button("Obtenir les prédictions du modèle")
-    prediction = gr.JSON()   
+    prediction = gr.JSON(label="Prédiction")
+    database_status = gr.Markdown()   
 
     predict_button.click(
         fn=infer_from_new_vector,
         inputs=validated_params,
-        outputs=prediction
-    )                           
+        outputs=[prediction, database_status],
+        api_name = "predict"
+    )   
 
+    gr.api(
+        fn=process_scoring_request,
+        api_name="score_client",
+    )                        
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
