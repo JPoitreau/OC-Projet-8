@@ -9,6 +9,7 @@ import pandas as pd
 from pydantic import TypeAdapter, ValidationError
 
 from src.database.database import save_error_log, save_prediction_log
+from src.utils.utils import custom_sampler_ratio, business_cost
 
 #Commande de lancement du script: python -m src.api.scoring_api
 
@@ -162,7 +163,8 @@ def process_scoring_request(
         request_id = save_error_log(
             requested_params={},
             error_message=error_message,
-            execution_time_ms=0.0
+            execution_time_ms=0.0,
+            event_time=event_time,
         )
 
         raise ValueError(
@@ -191,6 +193,7 @@ def process_scoring_request(
             requested_params=user_values,
             error_message=validation_message,
             execution_time_ms=execution_time_ms,
+            event_time=event_time,
         )
 
         raise ValueError(
