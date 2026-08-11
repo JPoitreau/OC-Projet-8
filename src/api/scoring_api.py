@@ -7,6 +7,8 @@ import gradio as gr
 import numpy as np
 import pandas as pd
 from pydantic import TypeAdapter, ValidationError
+from typing import Any
+from sklearn.pipeline import Pipeline
 
 from src.database.database import save_error_log, save_prediction_log
 from src.utils.utils import custom_sampler_ratio, business_cost
@@ -87,9 +89,12 @@ def validate_params(df: pd.DataFrame,
     return "✅ Features validated.", parsed
 
 def infer_from_new_vector(
-        params: dict, 
+        params: dict[str, Any], 
+        model: Pipeline | Path,
         start_time: float | None = None,
-        event_time : datetime | None = None):
+        event_time : datetime | None = None,
+        persist: bool = True,
+        onnx: bool = False):
     """
     Create new vector from given parameters. Missing parameters are filled
     with nan values and imputed in the model pipeline. Save the prediction
@@ -107,36 +112,49 @@ def infer_from_new_vector(
     try:
         new_vector = (pd.DataFrame([params], index=[0])
                     .reindex(columns=data.columns, fill_value=np.nan))
-        
-        prediction = scoring_model.predict(new_vector)
+
+        if not onnx:
+            prediction = model.predict(new_vector)
+        else:
+            
+            import onnxruntime as rt
+
+            session = rt.InferenceSession(model)
+            input_name = session.get_inputs()[0].name
+            inputs = new_vector.to_numpy(dtype=np.float32)
+            prediction = session.run(None, {input_name: inputs})
         
         execution_time_ms = (perf_counter() - start_time) * 1000
 
         predicted_class = int(prediction[0])
 
-        request_id = save_prediction_log(
-            requested_params=params,
-            predicted_class=predicted_class,
-            execution_time_ms=execution_time_ms,
-            event_time = event_time
-        )
+        if persist:
+            request_id = save_prediction_log(
+                requested_params=params,
+                predicted_class=predicted_class,
+                execution_time_ms=execution_time_ms,
+                event_time = event_time
+            )
 
-        message = (
-            f"✅ Prediction registered in PostgreSQL. "
-            f"Request ID : '{request_id}'."
-        )
+            message = (
+                f"✅ Prediction registered in PostgreSQL. "
+                f"Request ID : '{request_id}'."
+            )
+        else:
+            message = "✅ Prediction not registered in PostgreSQL."
 
         return prediction.tolist(), message
 
     except (ValueError, TypeError, KeyError, IndexError) as error:
         execution_time_ms = (perf_counter() - start_time) * 1000
 
-        request_id = save_error_log(
-            requested_params={},
-            error_message=f'{error}',
-            execution_time_ms=0.0,
-            event_time = event_time
-        )
+        if persist:
+            request_id = save_error_log(
+                requested_params={},
+                error_message=f'{error}',
+                execution_time_ms=0.0,
+                event_time = event_time
+            )
 
         return(
             None,
@@ -144,8 +162,11 @@ def infer_from_new_vector(
         )
 
 def process_scoring_request(
-        user_values: dict,
+        user_values: dict[str, Any],
+        model: Pipeline | Path,
         simulated_event_time: str | None = None,
+        persist: bool = True,
+        onnx: bool = False
     ):
     """
     Valide les valeurs, effectue la prédiction
@@ -205,9 +226,12 @@ def process_scoring_request(
     #prédiction et retourne la prédiction et la confirmation d'enregistrement.
 
     prediction, database_message = infer_from_new_vector(
-                                            parsed_params, 
+                                            parsed_params,
+                                            model, 
                                             start_time,
-                                            event_time
+                                            event_time,
+                                            persist,
+                                            onnx
                                             )
 
     #Retourne les résultats dans la console pour le débugage
@@ -256,10 +280,12 @@ with gr.Blocks() as demo:
     predict_button = gr.Button("Obtenir les prédictions du modèle")
     prediction = gr.JSON(label="Prédiction")
     database_status = gr.Markdown()   
+    model_state = gr.State(value=scoring_model)
+
 
     predict_button.click(
         fn=infer_from_new_vector,
-        inputs=validated_params,
+        inputs=[validated_params, model_state],
         outputs=[prediction, database_status],
         api_name = "predict"
     )   
