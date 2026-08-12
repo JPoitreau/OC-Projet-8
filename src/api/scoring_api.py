@@ -125,7 +125,8 @@ def infer_from_new_vector(
         
         execution_time_ms = (perf_counter() - start_time) * 1000
 
-        predicted_class = int(prediction[0])
+        prediction_output = np.asarray(prediction[0] if onnx else prediction)
+        predicted_class = int(prediction_output.ravel()[0])
 
         if persist:
             request_id = save_prediction_log(
@@ -142,7 +143,7 @@ def infer_from_new_vector(
         else:
             message = "✅ Prediction not registered in PostgreSQL."
 
-        return prediction.tolist(), message
+        return prediction_output.tolist(), message
 
     except (ValueError, TypeError, KeyError, IndexError) as error:
         execution_time_ms = (perf_counter() - start_time) * 1000
@@ -241,7 +242,7 @@ def process_scoring_request(
     }
 
 
-with gr.Blocks() as demo:
+with gr.Blocks() as demo:  # pragma: no cover
 
     choosed_features = gr.Dropdown(
         choices = explicative_features_list,
@@ -294,5 +295,5 @@ with gr.Blocks() as demo:
         api_name="score_client",
     )                        
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     demo.launch()
