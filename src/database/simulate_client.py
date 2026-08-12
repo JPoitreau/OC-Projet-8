@@ -1,22 +1,10 @@
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
 from gradio_client import Client
 from gradio_client.exceptions import AppError
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-PROFILS_PATH = BASE_DIR / "data" / "profils.json"
-
-SIMULATE_PROFILS = True
-NB_PROFILS = 2000
-ERROR_RATE = 0.4
-
-API_URL = "http://127.0.0.1:7860"
-ENDPOINT = "/score_client"
-
-client = Client(API_URL)
 
 
 def random_datetime_between(
@@ -60,13 +48,13 @@ def maybe_corrupted_profile(
 
     return corrupted_profile
 
-
-if SIMULATE_PROFILS:
+def simulate_profils(BASE_DIR, NB_PROFILS, ERROR_RATE):
     print("Simulating profils...")
     import json
 
     DATA_PATH = BASE_DIR / "data" / "original" / "training_data.csv"
     SCHEMA_PATH = BASE_DIR / "data" / "schema" / "typeAdapters.json"
+    PROFILS_PATH = BASE_DIR / "data" / "profils.json"
     
 
     training_data = pd.read_csv(DATA_PATH)
@@ -74,7 +62,7 @@ if SIMULATE_PROFILS:
     explicative_features = pd.read_json(SCHEMA_PATH, typ='series')
     explicative_features_list = list(explicative_features.index)
 
-    explicative_training_data = training_data.loc[:,explicative_features_list]
+    #explicative_training_data = training_data.loc[:,explicative_features_list]
 
     profils_list = [
         {
@@ -97,49 +85,65 @@ if SIMULATE_PROFILS:
 
     print("New profils registered. \n")
 
+if __name__ == "__main__":
 
-if PROFILS_PATH.is_file():
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    PROFILS_PATH = BASE_DIR / "data" / "profils.json"
 
-    print("Calling API... Inferences in progress.\n")
+    SIMULATE_PROFILS = True
+    NB_PROFILS = 2
+    ERROR_RATE = 0
 
-    simulation_start = datetime(
-        2026, 1, 1,
-        tzinfo=timezone.utc,
-    )
-    simulation_end = datetime(
-        2026, 7, 31, 23, 59, 59,
-        tzinfo=datetime.now().astimezone().tzinfo,
-    )
+    API_URL = "http://127.0.0.1:7860"
+    ENDPOINT = "/score_client"
 
-    profils = pd.read_json(PROFILS_PATH, typ='series')
-    for index, profil in enumerate(profils):
+    client = Client(API_URL)
 
-        event_time = random_datetime_between(
-        simulation_start,
-        simulation_end,
+    if SIMULATE_PROFILS:
+        simulate_profils(BASE_DIR, NB_PROFILS, ERROR_RATE)
+
+    if PROFILS_PATH.is_file():
+
+        print("Calling API... Inferences in progress.\n")
+
+        simulation_start = datetime(
+            2026, 1, 1,
+            tzinfo=UTC,
         )
-        try:
-            client.predict(profil, 
-                           event_time.isoformat(), 
-                           api_name=ENDPOINT)
-            print(f"Profil {index} traité.")
+        simulation_end = datetime(
+            2026, 7, 31, 23, 59, 59,
+            tzinfo=datetime.now().astimezone().tzinfo,
+        )
 
-        except AppError:
-            print(f"Profil {index} non valide.")
+        profils = pd.read_json(PROFILS_PATH, typ='series')
+        for index, profil in enumerate(profils):
 
-else:
-    event_time = datetime(
-    2026, 3, 31, 23, 59, 59,
-    tzinfo=timezone.utc,
-    ).isoformat()
+            event_time = random_datetime_between(
+            simulation_start,
+            simulation_end,
+            )
+            try:
+                client.predict(profil, 
+                            event_time.isoformat(), 
+                            api_name=ENDPOINT)
+                print(f"Profil {index} traité.")
 
-    client.predict(
-        {
-            "AMT_CREDIT": 6000,
-            "DAYS_BIRTH": -140,
-        },
-        event_time,
-        api_name="/score_client",
-    )
+            except AppError:
+                print(f"Profil {index} non valide.")
 
-print("All inferences completed. Ending script.")
+    else:
+        event_time = datetime(
+        2026, 3, 31, 23, 59, 59,
+        tzinfo=UTC,
+        ).isoformat()
+
+        client.predict(
+            {
+                "AMT_CREDIT": 6000,
+                "DAYS_BIRTH": -140,
+            },
+            event_time,
+            api_name="/score_client",
+        )
+
+    print("All inferences completed. Ending script.")

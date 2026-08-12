@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 import pandas as pd
@@ -226,7 +226,7 @@ def default_date_range() -> tuple[date, date]:
         row = connection.execute(query).one()
 
     if row.min_ts is None or row.max_ts is None:
-        end = datetime.now(tz=timezone.utc).date()
+        end = datetime.now(tz=UTC).date()
         start = end - timedelta(days=29)
         return start, end
 
