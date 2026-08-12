@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import URL, MetaData, Table, create_engine
 
@@ -49,7 +49,7 @@ def save_prediction_log(
     """
 
     statement = model_logs.insert().values( #commande sqlalchemy d'insertion dans la table
-        requested_at=datetime.now(timezone.utc),
+        requested_at=datetime.now(UTC),
         requested_params=requested_params,
         event_time = event_time,
         pred_class=predicted_class,
@@ -80,7 +80,7 @@ def save_error_log(
     """
 
     statement = model_logs.insert().values(
-        requested_at=datetime.now(timezone.utc),
+        requested_at=datetime.now(UTC),
         requested_params=requested_params,
         event_time=event_time,
         pred_class=None,
