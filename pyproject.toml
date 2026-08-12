@@ -19,7 +19,7 @@ dependencies = [
     "onnxruntime>=1.28.0",
     "pandas>=2.3.3",
     "plotly>=6.0.0",
-    "psycopg2>=2.9.12",
+    "psycopg2-binary>=2.9.12",
     "pytest>=9.1.1",
     "ruff>=0.16.0",
     "scikit-learn==1.7.2",
@@ -30,6 +30,7 @@ dependencies = [
     "sqlalchemy-utils>=0.42.1",
     "streamlit>=1.50.0",
     "uv>=0.11.26",
+    "tomli>=2.4.1"
 ]
 
 [tool.pytest.ini_options]
