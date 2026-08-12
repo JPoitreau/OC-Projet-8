@@ -1,10 +1,11 @@
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
 from gradio_client import Client
 from gradio_client.exceptions import AppError
+
 
 def random_datetime_between(
     start: datetime,
@@ -61,7 +62,7 @@ def simulate_profils(BASE_DIR, NB_PROFILS, ERROR_RATE):
     explicative_features = pd.read_json(SCHEMA_PATH, typ='series')
     explicative_features_list = list(explicative_features.index)
 
-    explicative_training_data = training_data.loc[:,explicative_features_list]
+    #explicative_training_data = training_data.loc[:,explicative_features_list]
 
     profils_list = [
         {
@@ -107,7 +108,7 @@ if __name__ == "__main__":
 
         simulation_start = datetime(
             2026, 1, 1,
-            tzinfo=timezone.utc,
+            tzinfo=UTC,
         )
         simulation_end = datetime(
             2026, 7, 31, 23, 59, 59,
@@ -133,7 +134,7 @@ if __name__ == "__main__":
     else:
         event_time = datetime(
         2026, 3, 31, 23, 59, 59,
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
         ).isoformat()
 
         client.predict(

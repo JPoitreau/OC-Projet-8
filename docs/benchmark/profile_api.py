@@ -16,7 +16,7 @@ import sys
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import patch
 
@@ -192,7 +192,7 @@ def _mock_db_writes():
 
 def run_all_profiles() -> list[ScenarioResult]:
     samples = _load_valid_samples(n=10)
-    event_time = datetime(2026, 6, 15, 12, 0, tzinfo=timezone.utc).isoformat()
+    event_time = datetime(2026, 6, 15, 12, 0, tzinfo=UTC).isoformat()
 
     def run_validation(params: dict) -> None:
         user_df = _params_to_dataframe(params)
