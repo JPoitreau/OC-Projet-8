@@ -95,7 +95,7 @@ def save_error_log(
     return result.inserted_primary_key[0]
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":  # pragma: no cover 
 #Test manuel en lançant directement le script. Empêche l'exécution si le script est importé.
     request_id = save_prediction_log(
         requested_params={
