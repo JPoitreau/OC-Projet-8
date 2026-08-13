@@ -1,6 +1,5 @@
 """Teste la validation des paramètres, l'inférence et le traitement de la requête."""
 
-from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pandas as pd
@@ -124,7 +123,7 @@ def test_infer_from_new_vector_onnx(
     scoring_api,
     mock_save_prediction_log,
 ):
-    prediction, message = scoring_api.infer_from_new_vector(
+    prediction, _ = scoring_api.infer_from_new_vector(
         VALID_PROFILE,
         ONNX_MODEL_PATH,
         persist=False,

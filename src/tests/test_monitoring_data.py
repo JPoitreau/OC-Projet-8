@@ -1,7 +1,7 @@
 """Teste les fonctions de monitoring des données. 	
 Agrégations, KPIs, normalisation d'erreurs, load_logs"""
 
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock
 
 import pandas as pd

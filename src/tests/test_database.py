@@ -2,8 +2,6 @@
 
 from datetime import UTC, datetime
 
-import pytest
-
 from src.database import database
 from src.tests.conftest import EVENT_TIME, VALID_PROFILE
 

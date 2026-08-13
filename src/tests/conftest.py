@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pickle as _pickle_module
-from datetime import UTC, date, datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 

@@ -6,8 +6,11 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
+from src.database.simulate_client import (
+    maybe_corrupted_profile,
+    random_datetime_between,
+)
 from src.tests.conftest import BASE_DIR, DATA_PATH
-from src.database.simulate_client import maybe_corrupted_profile, random_datetime_between
 
 
 def test_random_datetime_between_ok():
