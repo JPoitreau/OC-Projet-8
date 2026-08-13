@@ -18,10 +18,10 @@ jobs: # On définit ensuite les différentes tâches qui vont être faites
       with:
         lfs: false    #Active git lfs et force le téléchargement du modèle lfs pendant le checkout
 
-    - name: Set up Python 3.10
+    - name: Set up Python 3.11
       uses: actions/setup-python@v5 # On installe python
       with:
-        python-version: "3.10"
+        python-version: "3.11"
         cache: pip # Permet d'accélérer la mise en place de l'environnement aux jobs suivants
 
     - name: Install dependencies # On installe les dépendances
@@ -50,7 +50,7 @@ jobs: # On définit ensuite les différentes tâches qui vont être faites
           version: "0.5.31"
 
       - name: Set up Python
-        run: uv python install 3.10
+        run: uv python install 3.11
       
       - name: Update lockfile
         run: uv lock
@@ -58,6 +58,6 @@ jobs: # On définit ensuite les différentes tâches qui vont être faites
       - name: Sync dependencies
         run: uv sync --locked
 
-      - name: Test with pytest
+      - name: Test with pytest and coverage (>= 90%)
         timeout-minutes: 5
-        run: uv run --locked pytest
+        run: uv run --locked pytest --cov=src --cov-report=term-missing --cov-fail-under=90

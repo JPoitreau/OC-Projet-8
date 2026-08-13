@@ -85,7 +85,7 @@ def simulate_profils(BASE_DIR, NB_PROFILS, ERROR_RATE):
 
     print("New profils registered. \n")
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     BASE_DIR = Path(__file__).resolve().parents[2]
     PROFILS_PATH = BASE_DIR / "data" / "profils.json"

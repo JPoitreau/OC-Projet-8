@@ -10,5 +10,6 @@ data/original/training_data.csv
 #file
 src/notebooks/draft_and_data_exploration.ipynb
 
-python files
+#python files
 __pycache__
+

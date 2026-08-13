@@ -1,5 +1,5 @@
-# Image de base : Python 3.10 avec uv déjà installé
-FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim
+# Image de base : Python 3.11 avec uv déjà installé
+FROM ghcr.io/astral-sh/uv:python3.11-trixie-slim
 
 # Ajout des bibliothèques nécessaires pour LightGBM et PostgreSQL
 RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
