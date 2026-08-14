@@ -7,9 +7,14 @@ src/api/__pycache__
 #full training data
 data/original/training_data.csv
 
+#logs générés en mode distant (chemin csv de remplacement de model_logs)
+data/model_logs_remote.csv
+
 #file
 src/notebooks/draft_and_data_exploration.ipynb
 
 #python files
+src/database/__pycache__/
+src/database/__pycache__/*.pyc
 __pycache__
 

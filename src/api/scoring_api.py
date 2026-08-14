@@ -137,11 +137,11 @@ def infer_from_new_vector(
             )
 
             message = (
-                f"✅ Prediction registered in PostgreSQL. "
+                f"✅ Prediction registered. "
                 f"Request ID : '{request_id}'."
             )
         else:
-            message = "✅ Prediction not registered in PostgreSQL."
+            message = "✅ Prediction not registered."
 
         return prediction_output.tolist(), message
 
@@ -170,8 +170,9 @@ def process_scoring_request(
     ):
     """
     Valide les valeurs, effectue la prédiction
-    et enregistre la requête dans PostgreSQL. Permet de simuler une requête
-    utlisateur complète à partir d'un dictionnaire clés:valeurs
+    et enregistre la requête (PostgreSQL en local, csv en distant). Permet
+    de simuler une requête utlisateur complète à partir d'un dictionnaire
+    clés:valeurs
     """
 
     start_time = perf_counter()
