@@ -12,7 +12,10 @@ from sklearn.pipeline import Pipeline
 
 from src.database.database import save_error_log, save_prediction_log
 
+#from src.utils.utils import custom_sampler_ratio, business_cost
+
 #Commande de lancement du script: python -m src.api.scoring_api
+#En local, enregistrement sur csv plutôt que sur PostgreSQL: $env:APP_ENV="remote"
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_PATH = BASE_DIR / "data" / "original" / "demonstration_data.csv"
@@ -137,11 +140,11 @@ def infer_from_new_vector(
             )
 
             message = (
-                f"✅ Prediction registered in PostgreSQL. "
+                f"✅ Prediction registered. "
                 f"Request ID : '{request_id}'."
             )
         else:
-            message = "✅ Prediction not registered in PostgreSQL."
+            message = "✅ Prediction not registered."
 
         return prediction_output.tolist(), message
 
@@ -170,8 +173,9 @@ def process_scoring_request(
     ):
     """
     Valide les valeurs, effectue la prédiction
-    et enregistre la requête dans PostgreSQL. Permet de simuler une requête
-    utlisateur complète à partir d'un dictionnaire clés:valeurs
+    et enregistre la requête (PostgreSQL en local, csv en distant). Permet
+    de simuler une requête utlisateur complète à partir d'un dictionnaire
+    clés:valeurs
     """
 
     start_time = perf_counter()
