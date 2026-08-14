@@ -8,7 +8,7 @@ add_port: 7860
 
 # OC-Projet-8 — API de scoring crédit
 
-Projet de formation OpenClassroom (Projet 8) : mise en production d'un modèle de **scoring crédit** (LightGBM) avec journalisation PostgreSQL, interface Gradio, dashboard de monitoring Streamlit et pipeline CI/CD, évaluation de la
+Projet de formation OpenClassroom (Projet 8) : mise en production d'un modèle de **scoring crédit** (LightGBM) avec journalisation PostgreSQL (ou csv en déploiement distant), interface Gradio, dashboard de monitoring Streamlit et pipeline CI/CD, évaluation de la
 performance du pipeline d'inférence et optimisation onnx.
 
 ## Table des matières
@@ -19,6 +19,7 @@ performance du pipeline d'inférence et optimisation onnx.
 - [Prérequis](#prérequis)
 - [Installation](#installation)
 - [Configuration PostgreSQL](#configuration-postgresql)
+- [Journalisation : mode local vs distant](#journalisation--mode-local-vs-distant)
 - [Lancement](#lancement)
 - [Structure du projet](#structure-du-projet)
 - [API Gradio](#api-gradio)
@@ -35,7 +36,7 @@ Ce dépôt couvre le cycle de vie complet d'un modèle ML en contexte métier :
 
 1. Entraînement et export du modèle (notebooks, pipeline sklearn/LightGBM).
 2. Exposition via une **API Gradio** avec validation Pydantic des entrées.
-3. **Journalisation** de chaque requête (succès ou erreur) dans PostgreSQL.
+3. **Journalisation** de chaque requête (succès ou erreur) dans PostgreSQL (ou dans un csv en mode distant, cf. [Journalisation : mode local vs distant](#journalisation--mode-local-vs-distant)).
 4. **Monitoring** post-déploiement (volume, latence, taux d'erreur, distribution des prédictions).
 5. **Optimisation** des performances (profiling, conversion ONNX).
 
@@ -46,7 +47,7 @@ Ce dépôt couvre le cycle de vie complet d'un modèle ML en contexte métier :
 | **API Gradio** | Saisie interactive des features, validation, prédiction, endpoint REST `/score_client` |
 | **Validation** | Schéma Pydantic (`data/schema/typeAdapters.json`) sur les paramètres utilisateur |
 | **Inférence** | Modèle pickle (`lgb_model.pkl`) ou ONNX (`onnx_model.onnx`) |
-| **Logs PostgreSQL** | Table `model_logs` : params, prédiction, latence, erreurs |
+| **Logs PostgreSQL / csv** | Table `model_logs` en local, csv équivalent en mode distant : params, prédiction, latence, erreurs |
 | **Dashboard Streamlit** | 4 pages : vue d'ensemble, volume, performance, prédictions |
 | **Simulateur client** | Génération de profils et charge API via `gradio_client` |
 | **CI** | Lint Ruff + pytest avec couverture minimale **90 %** |
@@ -108,6 +109,26 @@ La connexion est définie dans `src/database/database.py` :
    - la table `model_logs` (colonnes : `request_id`, `requested_at`, `requested_params`, `event_time`, `pred_class`, `execution_time_ms`, `error`, `error_message`).
 
 > **Important** : l'API et le dashboard nécessitent une base accessible avec la table `model_logs` déjà créée.
+
+## Journalisation : mode local vs distant
+
+`src/database/database.py` bascule automatiquement entre deux modes de journalisation, sans changer le reste du code :
+
+| Mode | Déclenchement | Stockage |
+|------|---------------|----------|
+| **Local** (par défaut) | Aucune variable `SPACE_ID`/`APP_ENV=remote` détectée | PostgreSQL, table `model_logs` |
+| **Distant** | Variable d'environnement `SPACE_ID` définie (cas d'un déploiement Hugging Face Spaces) **ou** `APP_ENV=remote` définie manuellement | Fichier `data/model_logs_remote.csv`, mêmes colonnes que `model_logs` |
+
+Ce mode distant a été mis en place car un Hugging Face Space (SDK Docker standard) ne déploie qu'un seul conteneur : il n'y a pas de serveur PostgreSQL accessible à côté de l'application, et `DATABASE_HOST = "localhost"` ne pointe alors vers rien. Plutôt que de faire planter l'application au démarrage (la réflexion de la table `model_logs` via `autoload_with=engine` nécessite une connexion immédiate), le mode distant écrit directement les logs dans un csv, sans tenter la moindre connexion à PostgreSQL.
+
+Pour tester le mode distant en local :
+
+```bash
+# PowerShell
+$env:APP_ENV="remote"; uv run python src/api/scoring_api.py
+```
+
+> **Limite connue** : le système de fichiers d'un Hugging Face Space standard est **éphémère**. Le csv `data/model_logs_remote.csv` est donc perdu à chaque redémarrage ou redéploiement du Space, sauf activation d'un stockage persistant (option payante côté Hugging Face).
 
 ## Lancement
 
@@ -260,6 +281,7 @@ L'image utilise Python 3.11, installe les dépendances via `uv sync --locked` et
 |---------|-------------|
 | `data/original/demonstration_data.csv` | Données de démonstration (features complètes) |
 | `data/original/training_data.csv` | Jeu d'entraînement complet (**gitignoré**, usage local) |
+| `data/model_logs_remote.csv` | Logs générés en mode distant (**gitignoré**, cf. [Journalisation : mode local vs distant](#journalisation--mode-local-vs-distant)) |
 | `data/schema/typeAdapters.json` | Types Pydantic des 10 features utilisateur les plus explicatives du modèle|
 | `src/model/lgb_model.pkl` | Pipeline LightGBM entraîné (sklearn) |
 | `src/model/onnx_model.onnx` | Modèle exporté pour inférence ONNX Runtime |
