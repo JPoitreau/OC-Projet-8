@@ -4,10 +4,11 @@ reports/
 src/api/.gradio
 src/api/__pycache__
 
-#full training data
+#data
 data/original/training_data.csv
+data/model_logs_remote.csv
 
-#file
+#files
 src/notebooks/draft_and_data_exploration.ipynb
 
 #python files
