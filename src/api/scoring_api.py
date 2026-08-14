@@ -15,6 +15,7 @@ from src.utils.utils import custom_sampler_ratio, business_cost
 
 #Commande de lancement du script: python -m src.api.scoring_api
 #En local, enregistrement sur csv plutôt que sur PostgreSQL: $env:APP_ENV="remote"
+#Pour le retirer : Remove-Item Env:APP_ENV
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_PATH = BASE_DIR / "data" / "original" / "demonstration_data.csv"
