@@ -11,8 +11,8 @@ from pydantic import TypeAdapter, ValidationError
 from sklearn.pipeline import Pipeline
 
 from src.database.database import save_error_log, save_prediction_log
-from src.utils.utils import custom_sampler_ratio, business_cost # noqa: F401
-;
+from src.utils.utils import business_cost, custom_sampler_ratio  # noqa: F401
+
 #Commande de lancement du script: python -m src.api.scoring_api
 #En local, enregistrement sur csv plutôt que sur PostgreSQL: $env:APP_ENV="remote"
 
