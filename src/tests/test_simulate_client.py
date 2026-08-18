@@ -88,9 +88,9 @@ def test_simulate_profils(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    training_csv = data_dir / "training_data.csv"
+    training_csv = data_dir / "demonstration_data.csv"
     demo = pd.read_csv(DATA_PATH, sep=";")
-    demo.to_csv(training_csv, index=False)
+    demo.to_csv(training_csv, index=False, sep=";")
 
     with patch("builtins.print"):
         simulate_profils(tmp_path, NB_PROFILS=3, ERROR_RATE=0.0)
