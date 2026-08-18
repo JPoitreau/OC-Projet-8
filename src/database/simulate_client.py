@@ -52,11 +52,20 @@ def simulate_profils(BASE_DIR, NB_PROFILS, ERROR_RATE):
     print("Simulating profils...")
     import json
 
-    DATA_PATH = BASE_DIR / "data" / "original" / "demonstration_data.csv"
+    data_dir = BASE_DIR / "data" / "original"
+    DATA_PATH = data_dir / "demonstration_data.csv"
+    TRAINING_DATA_PATH = data_dir / "training_data.csv"
     SCHEMA_PATH = BASE_DIR / "data" / "schema" / "typeAdapters.json"
     PROFILS_PATH = BASE_DIR / "data" / "profils.json"
 
-    training_data = pd.read_csv(DATA_PATH, sep = ";")
+    data_source = DATA_PATH if DATA_PATH.is_file() else TRAINING_DATA_PATH
+    if not data_source.is_file():
+        raise FileNotFoundError(
+            f"Aucune donnée d'entraînement trouvée dans {data_dir}. "
+            "Vérifiez la présence de demonstration_data.csv ou training_data.csv."
+        )
+
+    training_data = pd.read_csv(data_source, sep=";")
 
     explicative_features = pd.read_json(SCHEMA_PATH, typ='series')
     explicative_features_list = list(explicative_features.index)

@@ -5,7 +5,6 @@ src/api/__pycache__
 
 #data
 data/original/training_data.csv
-data/model_logs_remote.csv
 
 #logs générés en mode distant (chemin csv de remplacement de model_logs)
 data/model_logs_remote.csv
