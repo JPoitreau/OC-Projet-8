@@ -52,12 +52,11 @@ def simulate_profils(BASE_DIR, NB_PROFILS, ERROR_RATE):
     print("Simulating profils...")
     import json
 
-    DATA_PATH = BASE_DIR / "data" / "original" / "training_data.csv"
+    DATA_PATH = BASE_DIR / "data" / "original" / "demonstration_data.csv"
     SCHEMA_PATH = BASE_DIR / "data" / "schema" / "typeAdapters.json"
     PROFILS_PATH = BASE_DIR / "data" / "profils.json"
-    
 
-    training_data = pd.read_csv(DATA_PATH)
+    training_data = pd.read_csv(DATA_PATH, sep = ";")
 
     explicative_features = pd.read_json(SCHEMA_PATH, typ='series')
     explicative_features_list = list(explicative_features.index)
@@ -91,8 +90,8 @@ if __name__ == "__main__":  # pragma: no cover
     PROFILS_PATH = BASE_DIR / "data" / "profils.json"
 
     SIMULATE_PROFILS = True
-    NB_PROFILS = 2
-    ERROR_RATE = 0
+    NB_PROFILS = 5000
+    ERROR_RATE = 0.3
 
     API_URL = "http://127.0.0.1:7860"
     ENDPOINT = "/score_client"
@@ -122,10 +121,14 @@ if __name__ == "__main__":  # pragma: no cover
             simulation_start,
             simulation_end,
             )
+
             try:
-                client.predict(profil, 
-                            event_time.isoformat(), 
-                            api_name=ENDPOINT)
+                client.predict(user_values = profil,
+                               model = "simulate_client", 
+                               simulated_event_time = event_time.isoformat(),
+                               persist = True,
+                               onnx = False, 
+                               api_name=ENDPOINT)
                 print(f"Profil {index} traité.")
 
             except AppError:

@@ -91,7 +91,7 @@ def validate_params(df: pd.DataFrame,
 
 def infer_from_new_vector(
         params: dict[str, Any], 
-        model: Pipeline | Path,
+        model: Pipeline | Path | str,
         start_time: float | None = None,
         event_time : datetime | None = None,
         persist: bool = True,
@@ -115,7 +115,12 @@ def infer_from_new_vector(
                     .reindex(columns=data.columns, fill_value=np.nan))
 
         if not onnx:
-            prediction = model.predict(new_vector)
+            if isinstance(model, str):
+                print("inside_condition")
+                model = scoring_model 
+                prediction = model.predict(new_vector)
+            else:
+                prediction = model.predict(new_vector)
         else:
             
             import onnxruntime as rt
@@ -165,7 +170,7 @@ def infer_from_new_vector(
 
 def process_scoring_request(
         user_values: dict[str, Any],
-        model: Pipeline | Path,
+        model: Pipeline | Path | str,
         simulated_event_time: str | None = None,
         persist: bool = True,
         onnx: bool = False
