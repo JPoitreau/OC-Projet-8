@@ -16,7 +16,7 @@ from src.utils.utils import business_cost, custom_sampler_ratio  # noqa: F401
 #Commande de lancement du script: python -m src.api.scoring_api
 #En local, enregistrement sur csv plutôt que sur PostgreSQL: $env:APP_ENV="remote"
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parents[2],
 DATA_PATH = BASE_DIR / "data" / "original" / "demonstration_data.csv"
 SCHEMA_PATH = BASE_DIR / "data" / "schema" / "typeAdapters.json"
 MODEL_PATH = BASE_DIR / "src" / "model" / "lgb_model.pkl"
