@@ -28,6 +28,7 @@ performance du pipeline d'inférence et optimisation onnx.
 - [CI/CD](#cicd)
 - [Docker](#docker)
 - [Base de données et optimisation](#base-de-données-et-optimisation)
+- [Analyse du Data Drift](#analyse-du-data-drift)
 - [Données et modèles](#données-et-modèles)
 
 ## Contexte
@@ -274,6 +275,36 @@ L'image utilise Python 3.11, installe les dépendances via `uv sync --locked` et
 
 - `src/notebooks/creat_db.ipynb` — création de la base PostgreSQL.
 - `src/notebooks/processing_performances.ipynb` — évaluation des performances et export ONNX.
+- `src/notebooks/data_drift_analysis.ipynb` — analyse du data drift et des anomalies opérationnelles (voir section dédiée ci-dessous).
+
+## Analyse du Data Drift
+
+Le notebook `src/notebooks/data_drift_analysis.ipynb` réalise l'analyse automatique demandée par la mission à partir des données déjà journalisées dans `model_logs` (inputs, outputs, latence) :
+
+| Étape | Description |
+|-------|-------------|
+| **Référence** | `data/original/demonstration_data.csv` (proxy des données d'entraînement), restreint aux 10 features de `data/schema/typeAdapters.json` |
+| **Production** | Requêtes réussies de `model_logs` (inputs `requested_params`, sortie `pred_class`, latence `execution_time_ms`) |
+| **Data drift** | Rapport **Evidently AI** (`DataDriftPreset`) comparant référence et production, complété par une tendance mensuelle (test de Kolmogorov-Smirnov) |
+| **Anomalies opérationnelles** | Détection de jours anormaux (taux d'erreur, latence P95) par bornes interquartiles, à partir des agrégations déjà utilisées par le dashboard (`src/monitoring/data.py`) |
+| **Synthèse** | Points de vigilance et recommandations (seuils d'alerte, fréquence de contrôle, limites de l'analyse, RGPD) |
+
+### Lancer l'analyse
+
+```bash
+uv run jupyter nbconvert --to notebook --execute --inplace src/notebooks/data_drift_analysis.ipynb
+```
+
+Nécessite une base PostgreSQL accessible avec des données dans `model_logs` (cf. [Configuration PostgreSQL](#configuration-postgresql) et `src/database/simulate_client.py` pour générer des requêtes de test).
+
+### Livrables générés
+
+| Fichier | Contenu |
+|---------|---------|
+| `outputs/data_drift_report.html` | Rapport complet Evidently (drift par feature, distributions) |
+| `outputs/data_drift_summary.csv` | Résumé du drift par feature (score, test statistique, statut) |
+
+> **Limite connue** : la donnée de référence (`demonstration_data.csv`, 49 lignes) est également la source utilisée par le simulateur de charge (`src/database/simulate_client.py`) pour générer les profils de test. L'absence de drift observée sur les logs de démonstration est donc attendue ; l'analyse doit être rejouée sur de vraies requêtes clients (ou un jeu de simulation indépendant) pour être pleinement probante.
 
 ## Données et modèles
 
@@ -295,4 +326,4 @@ Les features manquantes sont imputées par le pipeline du modèle.
 
 ---
 
-**Stack principale** : Python 3.11 · LightGBM · Gradio · Streamlit · PostgreSQL · SQLAlchemy · ONNX Runtime · uv · pytest · Ruff
+**Stack principale** : Python 3.11 · LightGBM · Gradio · Streamlit · PostgreSQL · SQLAlchemy · ONNX Runtime · Evidently AI · uv · pytest · Ruff

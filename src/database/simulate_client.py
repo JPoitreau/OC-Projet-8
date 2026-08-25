@@ -100,7 +100,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     SIMULATE_PROFILS = True
     NB_PROFILS = 5000
-    ERROR_RATE = 0.3
+    ERROR_RATE = 0
 
     API_URL = "http://127.0.0.1:7860"
     ENDPOINT = "/score_client"
