@@ -1,0 +1,11 @@
+feature,stattest,drift_score,drift_detected
+EXT_SOURCE_3,K-S p_value,0.99999939855263,False
+EXT_SOURCE_1,K-S p_value,0.9999999987499775,False
+EXT_SOURCE_2,K-S p_value,0.9999999999997031,False
+client_cash_CNT_INSTALMENT_FUTURE_min_mean,K-S p_value,0.9999999999999618,False
+DAYS_EMPLOYED,K-S p_value,1.0,False
+DAYS_BIRTH,K-S p_value,1.0,False
+AMT_CREDIT,K-S p_value,1.0,False
+bureau_DAYS_CREDIT_max,K-S p_value,1.0,False
+client_installments_AMT_PAYMENT_min_sum,K-S p_value,1.0,False
+previous_CNT_PAYMENT_mean,K-S p_value,1.0,False
